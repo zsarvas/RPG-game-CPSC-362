@@ -1,2 +1,2 @@
 # RPG-game-CPSC-362
-The repository for our game : )
+The repository for our gamw.
