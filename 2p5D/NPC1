@@ -1,0 +1,58 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class NPC1 : MonoBehaviour
+{
+   public float TheDistance;
+    public GameObject ActionDisplay;
+    public GameObject ActionText;
+
+    public GameObject TextBox;
+    public GameObject Theplayer; 
+
+    public GameObject NPCName;
+    public GameObject NPCText;
+
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        TheDistance= PlayerCasting._DistancefromTarget;
+
+    }
+    void OnMouseOver(){
+        if(TheDistance<=3){
+            ActionText.GetComponent<Text>().text="Talk";
+            ActionDisplay.SetActive(true);
+            ActionText.SetActive(true);
+        }
+        if(Input.GetKeyDown(KeyCode.T)){
+            if(TheDistance<=3){
+                ActionDisplay.SetActive(false);
+                ActionText.SetActive(false);
+                //Theplayer.SetActive(false);
+                StartCoroutine (NPC01Active());
+            }
+        }
+    }
+    void OnMouseExit(){
+        ActionDisplay.SetActive(false);
+        ActionText.SetActive(false);
+    }
+    IEnumerator NPC01Active(){
+        TextBox.SetActive(true);
+        NPCName.GetComponent<Text>().text= "Mysterious Stranger";
+        NPCName.SetActive(true);
+        NPCText.GetComponent<Text>().text="Hello , I may have a Quest for you if you wish to accept it. Prove your MIGHT to Me.....";
+        NPCText.SetActive(true);
+        yield return new WaitForSeconds(5.5f);
+        NPCName.SetActive(false);
+        NPCText.SetActive(false);
+        TextBox.SetActive(false);
+        ActionDisplay.SetActive(true);
+        ActionText.SetActive(true);
+    }
+}
