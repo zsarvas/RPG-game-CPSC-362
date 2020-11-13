@@ -1,0 +1,50 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class QuestFirstSword : MonoBehaviour
+{
+  
+  public float TheDistance;
+  public GameObject Fakesword;
+  public GameObject ActionDisplay;
+  public GameObject ActionText;
+  public static int Realsword;
+  
+    // Update is called once per frame
+    void Update()
+    {
+       TheDistance= PlayerCasting._DistancefromTarget;
+
+    
+    }
+
+    void OnMouseOver(){
+        if(TheDistance<=3){
+            ActionText.GetComponent<Text>().text= "C = Attack ";
+            ActionDisplay.GetComponent<Text>().text="T = PICKUP SWORD";
+            ActionText.SetActive(true);
+            ActionDisplay.SetActive(true);
+
+        }
+        if(Input.GetKeyDown(KeyCode.T)){
+            if(TheDistance<=3){
+                this.GetComponent<BoxCollider>().enabled= false;
+                Fakesword.SetActive(false);
+                GameObject.Find("PlayerQuad").GetComponent<PlayerCombat>().meleeOn = true;
+                ActionText.SetActive(false);
+                ActionDisplay.SetActive(false);
+            
+    
+            }
+        }
+
+    }
+    void OnMouseExit(){
+        ActionText.SetActive(false);
+        ActionDisplay.SetActive(false);
+    }
+   
+}
+ 
