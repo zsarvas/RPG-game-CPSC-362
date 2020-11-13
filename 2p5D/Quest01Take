@@ -1,0 +1,44 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class QUEST01Take : MonoBehaviour
+{
+    public float TheDistance;
+    public GameObject ActionDisplay;
+    public GameObject ActionText;
+
+    public GameObject UIQuest;
+    public GameObject Theplayer; 
+
+    public GameObject NoticeCam;
+
+
+
+    // Update is called once per frame
+    void Update()
+    {
+        TheDistance= PlayerCasting._DistancefromTarget;
+
+    }
+    void OnMouseOver(){
+        if(TheDistance<=3){
+            ActionDisplay.SetActive(true);
+            ActionText.SetActive(true);
+        }
+        if(Input.GetKeyDown(KeyCode.T)){
+            if(TheDistance<=3){
+                ActionDisplay.SetActive(false);
+                ActionText.SetActive(false);
+                UIQuest.SetActive(true);
+                NoticeCam.SetActive(true);
+                Theplayer.GetComponent<PlayerMovement>().enabled = false;
+                Theplayer.GetComponent<PlayerCombat>().enabled = false;
+            }
+        }
+    }
+    void OnMouseExit(){
+        ActionDisplay.SetActive(false);
+        ActionText.SetActive(false);
+    }
+}
