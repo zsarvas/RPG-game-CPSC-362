@@ -1,0 +1,62 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+using UnityEngine.UI;
+
+
+public class Quest1Buttons : MonoBehaviour
+{
+  public GameObject ThePlayer;
+  public GameObject NoticeCam;
+  public GameObject UIQuest;
+  public GameObject ActiveQuestBox;
+  public GameObject Objective1;
+  public GameObject Objective2;
+  public GameObject Objective3;
+  public GameObject ExMark;
+  public GameObject Notice;
+  public GameObject noticetrigger;
+
+  
+
+public void AcceptQuest(){
+    ThePlayer.GetComponent<PlayerMovement>().enabled = true;
+    ThePlayer.GetComponent<PlayerCombat>().enabled = true;
+    NoticeCam.SetActive(false);
+    UIQuest.SetActive(false);
+    StartCoroutine(SetQuestUI());
+}
+
+IEnumerator SetQuestUI(){
+    ExMark.SetActive(false);
+    Notice.SetActive(false);
+    noticetrigger.SetActive(false);
+    ActiveQuestBox.GetComponent<Text> ().text="Proving Your Might";
+    Objective1.GetComponent<Text> ().text="Get To Rocky Road";
+    Objective2.GetComponent<Text> ().text="Open Your First Chest";
+    Objective3.GetComponent<Text> ().text="Kill the Grand Tree King";
+    QUESTManager.ActiveQuestNumber=1;
+    yield return new WaitForSeconds(.5f);
+    ActiveQuestBox.SetActive(true);
+    yield return new WaitForSeconds(1);
+     Objective1.SetActive(true);
+    yield return new WaitForSeconds(.5f);
+     Objective2.SetActive(true);
+    yield return new WaitForSeconds(.5f);
+     Objective3.SetActive(true);
+    yield return new WaitForSeconds(9);
+    ActiveQuestBox.SetActive(false);
+    Objective1.SetActive(false);
+    Objective2.SetActive(false);
+    Objective3.SetActive(false);
+
+}
+ public void DeclineQuest(){
+     ThePlayer.GetComponent<PlayerMovement>().enabled = true;
+     ThePlayer.GetComponent<PlayerCombat>().enabled = true;
+     NoticeCam.SetActive(false);
+     UIQuest.SetActive(false);
+ }
+
+}
