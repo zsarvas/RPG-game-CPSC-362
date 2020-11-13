@@ -1,0 +1,74 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class QuestFirstChest : MonoBehaviour
+{
+  
+  public float TheDistance;
+  public GameObject Chest;
+  public GameObject ActionDisplay;
+  public GameObject ActionText;
+  public GameObject Objective;
+  public int ObjectiveDone;
+  public GameObject ChestCam;
+  public GameObject Theplayer;
+  public GameObject enableswordtrigger;
+    // Update is called once per frame
+    void Update()
+    {
+       TheDistance= PlayerCasting._DistancefromTarget;
+
+       if(ObjectiveDone==2){
+             if(Objective.transform.localScale.y <= 0.0f) {
+                ObjectiveDone=0;
+                Objective.SetActive(false);
+
+            }
+            else {
+                Objective.transform.localScale -= new Vector3(0.0f,0.01f,0.0f);
+                Objective.GetComponent<Text>().color = Color.red;
+            }
+       } 
+
+    
+    }
+
+    void OnMouseOver(){
+        if(TheDistance<=3){
+            ActionText.GetComponent<Text>().text= "Open Chest!";
+            ActionText.SetActive(true);
+            ActionDisplay.SetActive(true);
+
+        }
+        if(Input.GetKeyDown(KeyCode.T)){
+            if(TheDistance<=3){
+                this.GetComponent<BoxCollider>().enabled= false;
+                Chest.GetComponent<Animation>().Play("ChestOpen");
+                enableswordtrigger.SetActive(true);
+                ObjectiveDone=2;
+                ActionText.SetActive(false);
+                ActionDisplay.SetActive(false);
+                Objective.SetActive(true);
+                StartCoroutine(CameraUI());
+    
+            }
+        }
+
+    }
+    void OnMouseExit(){
+        ActionText.SetActive(false);
+        ActionDisplay.SetActive(false);
+    }
+    IEnumerator CameraUI(){
+        ChestCam.SetActive(true);
+        Theplayer.GetComponent<PlayerMovement>().enabled = false;
+        Theplayer.GetComponent<PlayerCombat>().enabled = false;
+        yield return new WaitForSeconds(5);
+        Theplayer.GetComponent<PlayerMovement>().enabled = true;
+        Theplayer.GetComponent<PlayerCombat>().enabled = true;
+        ChestCam.SetActive(false);
+}
+}
+ 
