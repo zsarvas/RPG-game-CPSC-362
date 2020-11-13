@@ -1,0 +1,78 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class QuestKillGrandTree : MonoBehaviour
+{
+  
+  public float TheDistance;
+  public GameObject Tree;
+  public GameObject ActionDisplay;
+  public GameObject ActionText;
+  public GameObject Objective;
+  public int ObjectiveDone;
+  public GameObject CompletionCam;
+  public GameObject Theplayer;
+  public GameObject Notice;
+  public GameObject ExMark;
+  public GameObject CompleteTrigger;
+    // Update is called once per frame
+    void Update()
+    {
+       TheDistance= PlayerCasting._DistancefromTarget;
+
+       if(ObjectiveDone==3){
+             if(Objective.transform.localScale.y <= 0.0f) {
+                ObjectiveDone=0;
+                Objective.SetActive(false);
+
+            }
+            else {
+                Objective.transform.localScale -= new Vector3(0.0f,0.01f,0.0f);
+                Objective.GetComponent<Text>().color = Color.red;
+            }
+       } 
+
+    
+    }
+
+    void OnMouseOver(){
+        if(TheDistance<=3){
+            ActionText.GetComponent<Text>().text= "Kill Grand Tree!";
+            ActionText.SetActive(true);
+            ActionDisplay.SetActive(true);
+
+        }
+        if(Input.GetKeyDown(KeyCode.T)){
+            if(TheDistance<=3){
+                this.GetComponent<BoxCollider>().enabled= false;
+                ObjectiveDone=3;
+                ActionText.SetActive(false);
+                ActionDisplay.SetActive(false);
+                Objective.SetActive(true);
+                ExMark.SetActive(true);
+                Notice.SetActive(true);
+                StartCoroutine(CameraUI());
+                CompleteTrigger.SetActive(true);
+
+    
+            }
+        }
+
+    }
+    void OnMouseExit(){
+        ActionText.SetActive(false);
+        ActionDisplay.SetActive(false);
+    }
+    IEnumerator CameraUI(){
+        CompletionCam.SetActive(true);
+        Theplayer.GetComponent<PlayerMovement>().enabled = false;
+        Theplayer.GetComponent<PlayerCombat>().enabled = false;
+      yield return new WaitForSeconds(5);
+         Theplayer.GetComponent<PlayerMovement>().enabled = true;
+                Theplayer.GetComponent<PlayerCombat>().enabled = true;
+        CompletionCam.SetActive(false);
+}
+}
+ 
