@@ -7,10 +7,14 @@ public class PlayerStatus : MonoBehaviour
 {
     private GameObject[] hearts;
     private bool invincible = false;
+    private AudioSource hurtSound;
+    private AudioSource deathSound;
+    private Rigidbody rb;
 
     public int maxHealth;
     public int currHealth;
-    public float iFrames = .5f;
+    public float iFrames = 1f;
+    public bool infiniteHealth = false;
 
     // Start is called before the first frame update
     void Start()
@@ -27,22 +31,36 @@ public class PlayerStatus : MonoBehaviour
         }
 
         UpdateHpBar();
+        hurtSound = GameObject.Find("PlayerHurt").GetComponent<AudioSource>();
+        deathSound = GameObject.Find("PlayerDeath").GetComponent<AudioSource>();
+        rb = GetComponent<Rigidbody>();
     }
 
     //use negative values to heal
-    public void DamagePlayer(int damage)
+    public void DamagePlayer(int damage, float force, Vector3 forceDir)
     {
-        if (damage > 0)
+        if (damage >= 0)
         {
+            if (currHealth == 0) return;
+
             if (invincible)
             { 
                 return;
             }
+
+            //play the hurt sound if not dying
+            if (damage < currHealth)
+            {
+                hurtSound.Play();
+            }
+
+            rb.AddForce(forceDir * force, ForceMode.Impulse);
             StartCoroutine(IFramesStart());
         }
 
+        if (infiniteHealth) return;
+
         currHealth -= damage;
-        //todo play hurt sound
         UpdateHpBar();
 
         if (currHealth <= 0)
@@ -75,6 +93,15 @@ public class PlayerStatus : MonoBehaviour
     void DeathSequence()
     {
         Debug.Log("Player has died");
+        deathSound.Play();
+        GetComponent<PlayerMovement>().enabled = false;
+        GetComponent<PlayerCombat>().enabled = false;
+        Animator ani = GetComponent<Animator>();
+        ani.SetTrigger("Death");
+        ani.SetBool("Idle", true);
+        ani.SetBool("Running", false);
+        ani.SetFloat("LastDirection", 4f);
+        //todo destruction/respawn
         this.enabled = false;
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 public class Arrow : MonoBehaviour
 {
     public int damage = 1;
+    public float knockback = 0f;
 
     void Start()
     {
@@ -15,16 +16,16 @@ public class Arrow : MonoBehaviour
     {
         GameObject obj = collider.gameObject;
         LayerMask layer = obj.layer;
-        Debug.Log("Arrow hit layer: " + LayerMask.LayerToName(layer));
+        //Debug.Log("Arrow hit layer: " + LayerMask.LayerToName(layer));
 
         //check if object is enemy
         if (layer.value == 9)
         {
-            obj.GetComponent<EnemyCombat>().DamageEnemy(damage);
+            obj.GetComponent<EnemyCombat>().DamageEnemy(damage, knockback, transform.up, 0f);
         }
 
-        //go through object if it is a consumable
-        if (layer.value != 10)
+        //go through object if it is ignored by raycast
+        if (layer.value != 2 && layer.value != 10)
         {
             Destroy(gameObject);
         }

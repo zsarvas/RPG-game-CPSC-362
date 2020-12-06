@@ -8,34 +8,60 @@ public class enemyAI : MonoBehaviour
     public Rigidbody rb;
     public Vector3 fallSpeed = new Vector3(0, -100, 0);
     public float speed = 1f;
+    public float _lastDirection;
 
     private Vector3 movement;
     private float movHor;
     private float movVer;
-    private Vector3 PlayerDirection;
     private bool moving;
+    private EnemyCombat combatScript;
+    private EnemyContactDamage damageScript;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+        combatScript = GetComponent<EnemyCombat>();
+        damageScript = GetComponent<EnemyContactDamage>();
         GetComponent<SpriteRenderer>().enabled = false;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        speed = 1;
+        DeathCheck();
         ResetRoutine();
-        if (!moving) {
-            StartCoroutine("Walk");
-        }
+
+        if (!moving) StartCoroutine("Walk");
+
         movement = new Vector3(movHor, 0, movVer);
-        SetAnimations();
-        StickToGround();
-        rb.MovePosition(rb.position + movement * speed * Time.fixedDeltaTime);
+        animator.SetFloat("Horizontal", movHor);
+        animator.SetFloat("Vertical", movVer);
+
+        //Debug.DrawRay(transform.position, Vector3.forward * 5f, Color.red);
+
+        if (movement.sqrMagnitude == 0f)
+        {
+            animator.SetBool("Moving", false);
+        }
+        else
+        {
+            _lastDirection = GetLastDirection();
+            animator.SetFloat("LastDirection", _lastDirection);
+            animator.SetBool("Moving", true);
+        }
+
+        damageScript.lastDir = GetDirVector();
     }
 
+    void FixedUpdate()
+    {
+        StickToGround();
+        transform.Translate(movement * speed * Time.fixedDeltaTime);
+    }
+
+    //reset walking routine when reseting position
     void ResetRoutine() {
         if (Input.GetKeyDown("p")) {
             StopCoroutine("Walk");
@@ -43,18 +69,17 @@ public class enemyAI : MonoBehaviour
         }
     }
 
+    //enables falling if moving and prevents sliding if still
     void StickToGround() {
-        //stick to ground if moving
         if (movement.sqrMagnitude != 0f)
         {
             rb.velocity = fallSpeed;
+            return;
         }
-        else
-        {
-            rb.velocity = new Vector3(0, 0, 0);
-        }
+        rb.velocity = Vector3.zero;
     }
 
+    //walk in a box
     private IEnumerator Walk() {
         moving = true;
         //move right for 1s then idle for 1s
@@ -90,50 +115,54 @@ public class enemyAI : MonoBehaviour
         movVer = z;
     }
 
-    void SetAnimations()
+    //gets last direction enemy was facing
+    float GetLastDirection()
     {
-        //set bool value for transition condition between walking and idle in animator
-        animator.SetFloat("Horizontal", movHor);
-        animator.SetFloat("Vertical", movVer);
-        if (movement.sqrMagnitude != 0f)
-        {
-            animator.SetBool("Moving", true);
-        }
-        else
-        {
-            animator.SetBool("Moving", false);
-        }
-
-        //create collisions using raycast to prevent player from running through collision boxes
-        //also sets last direction for player animator to set idle animation
-        RaycastHit TheHit;
+        //0 = up, 1 = right, 2 = down, 3 = left
         switch (movHor)
         {
+            case 0:
+                break;
             case -1:
-                PlayerDirection = Vector3.left;
-                animator.SetFloat("LastDirection", 3);
-                break;
+                return 3f;
             case 1:
-                PlayerDirection = Vector3.right;
-                animator.SetFloat("LastDirection", 1);
-                break;
+                return 1f;
             default: break;
         }
         switch (movVer)
         {
             case -1:
-                PlayerDirection = Vector3.back;
-                animator.SetFloat("LastDirection", 2);
-                break;
+                return 2f;
             case 1:
-                PlayerDirection = Vector3.forward;
-                animator.SetFloat("LastDirection", 0);
-                break;
+                return 0f;
             default: break;
         }
-        if (Physics.Raycast(transform.position, transform.TransformDirection(PlayerDirection), out TheHit, 0.25f))
+        Debug.Log("Error: Getting last direction while not moving");
+        return -1;
+    }
+
+    void DeathCheck()
+    {
+        if (combatScript.currHP > 0) return;
+
+        this.enabled = false;
+    }
+
+    Vector3 GetDirVector()
+    {
+        switch (_lastDirection)
         {
-            speed = 0;
+            case 0:
+                return transform.forward;
+            case 1:
+                return transform.right;
+            case 2:
+                return -transform.forward;
+            case 3:
+                return -transform.right;
+            default:
+                Debug.Log("error:" + name + " : GetDirVector()");
+                return transform.forward;
         }
     }
 }

@@ -18,20 +18,29 @@ public class PlayerCombat : MonoBehaviour
     public int damage = 1;
     public float attackRange = 0.5f;
     public float arrowForce = 20f;
+    public float meleeForce = 5f;
 
-    private bool frozen;
     private Transform currP;
+    private AudioSource arrowShoot;
+    private AudioSource swordSwing;
+    private PlayerMovement movScript;
+    private PlayerCasting castScript;
+    private bool frozen;
     private float lastDir;
     private float currDir;
 
     // Start is called before the first frame update
     void Start()
     {
+        animator = GetComponent<Animator>();
+        movScript = GetComponent<PlayerMovement>();
+        castScript = GetComponent<PlayerCasting>();
         atkPUp = transform.Find("attackPointU").GetComponent<Transform>();
         atkPRight = transform.Find("attackPointR").GetComponent<Transform>();
         atkPDown = transform.Find("attackPointD").GetComponent<Transform>();
         atkPLeft = transform.Find("attackPointL").GetComponent<Transform>();
-        animator = GetComponent<Animator>();
+        swordSwing = GameObject.Find("SwordSwing").GetComponent<AudioSource>();
+        arrowShoot = GameObject.Find("ArrowShoot").GetComponent<AudioSource>();
         currDir = 1f;
         lastDir = currDir;
     }
@@ -40,14 +49,15 @@ public class PlayerCombat : MonoBehaviour
     void Update()
     {
         if (frozen) return;
-        if (Input.GetKeyDown(SwordAtkButton.ToLower()))
+
+        if (Input.GetKeyDown(SwordAtkButton.ToLower()) || Input.GetMouseButtonDown(0))
         {
             if (meleeOn)
             {
                 Melee_Attack(1f);
             }
         }
-        else if (Input.GetKeyDown(BowAtkButton.ToLower()))
+        else if (Input.GetKeyDown(BowAtkButton.ToLower()) || Input.GetMouseButtonDown(1))
         {
             if (rangeOn)
             {
@@ -65,40 +75,43 @@ public class PlayerCombat : MonoBehaviour
 
     void Melee_Attack(float type) {
         Start_Attack(type);
-        GameObject.Find("SwordSwing").GetComponent<AudioSource>().Play();
+        swordSwing.Play();
         currP = UpdateAtkPoint();
         Collider[] hitEnemies = Physics.OverlapSphere(currP.position, attackRange, enemyLayers);
         foreach (Collider enemy in hitEnemies)
         {
-            enemy.GetComponent<EnemyCombat>().DamageEnemy(damage);
+            enemy.GetComponent<EnemyCombat>().DamageEnemy(damage, meleeForce, GetKnockDir(), type);
         }
     }
 
     void Ranged_Attack(float type)
     {
         Start_Attack(type);
-        GameObject.Find("ArrowShoot").GetComponent<AudioSource>().Play();
+        arrowShoot.Play();
         currP = UpdateAtkPoint();
-        GameObject arrow = Instantiate(arrowPrefab, currP.position, currP.rotation);
+        GameObject arrow = Instantiate(arrowPrefab, currP.position, arrowPrefab.transform.rotation);
         Rigidbody arrowRb = arrow.GetComponent<Rigidbody>();
         Transform arrowT = arrow.GetComponent<Transform>();
-        switch (GetComponent<PlayerMovement>()._lastDirection)
+        arrowT.rotation = transform.rotation;
+        //Debug.DrawRay(transform.position, arrowT.up * 20f, Color.yellow);
+        switch (movScript._lastDirection)
         {
             case 0:
+                //arrowT.rotation = Quaternion.LookRotation(transform.forward, transform.forward);
                 arrowT.Rotate(90f, 0f, 0f);
-                arrowRb.AddForce(Vector3.forward * arrowForce, ForceMode.Impulse);
+                arrowRb.AddForce(transform.forward * arrowForce, ForceMode.Impulse);
                 break;
             case 1:
-                arrowT.Rotate(0f, 0f, -90f);
-                arrowRb.AddForce(Vector3.right * arrowForce, ForceMode.Impulse);
+                arrowT.Rotate(90f, 90f, 0f);
+                arrowRb.AddForce(transform.right * arrowForce, ForceMode.Impulse);
                 break;
             case 2:
-                arrowT.Rotate(90f, 0f, 180f);
-                arrowRb.AddForce(Vector3.back * arrowForce, ForceMode.Impulse);
+                arrowT.Rotate(90f, 180f, 0f);
+                arrowRb.AddForce(-transform.forward * arrowForce, ForceMode.Impulse);
                 break;
             case 3:
-                arrowT.Rotate(0f, 0f, 90f);
-                arrowRb.AddForce(Vector3.left * arrowForce, ForceMode.Impulse);
+                arrowT.Rotate(90f, -90f, 0f);
+                arrowRb.AddForce(-transform.right * arrowForce, ForceMode.Impulse);
                 break;
             default:
                 Debug.Log("Error: ranged direction");
@@ -108,15 +121,15 @@ public class PlayerCombat : MonoBehaviour
 
     private IEnumerator Freeze(float time) {
         frozen = true;
-        GetComponent<PlayerMovement>().enabled = false;
+        movScript.enabled = false;
         yield return new WaitForSeconds(time);
-        GetComponent<PlayerMovement>().enabled = true;
+        movScript.enabled = true;
         frozen = false;
     }
     
     Transform UpdateAtkPoint()
     {
-        currDir = GetComponent<PlayerMovement>()._lastDirection;
+        currDir = movScript._lastDirection;
         switch (currDir)
         {
             case 0:
@@ -132,5 +145,22 @@ public class PlayerCombat : MonoBehaviour
                 return null;
         }
     }
-    
+
+    public Vector3 GetKnockDir()
+    {
+        switch (movScript._lastDirection)
+        {
+            case 0:
+                return transform.forward;
+            case 1:
+                return transform.right;
+            case 2:
+                return -transform.forward;
+            case 3:
+                return -transform.right;
+            default:
+                Debug.Log("error: " + name + "GetKnockDir()");
+                return transform.forward;
+        }
+    }
 }

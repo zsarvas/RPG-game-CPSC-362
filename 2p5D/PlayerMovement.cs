@@ -10,15 +10,17 @@ public class PlayerMovement : MonoBehaviour
     public Animator animator;
     public Rigidbody rb;
     public string runButton = "z";
-    public Vector3 fallSpeed = new Vector3(0, -100, 0);
     public float _lastDirection;
 
     private Vector3 movement;
+    //private Vector3 movementNew;
     private bool xflag;
     private bool yflag;
     private float movHor;
     private float movVer;
     private float speed;
+    //private Camera cam;
+    //private Vector3 camDir;
 
 
     void Start()
@@ -26,6 +28,8 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
         GetComponent<SpriteRenderer>().enabled = false;
+        //cam = Camera.main;
+        _lastDirection = 0f;
     }
 
 
@@ -34,9 +38,15 @@ public class PlayerMovement : MonoBehaviour
         movHor = Input.GetAxisRaw("Horizontal");
         movVer = Input.GetAxisRaw("Vertical");
         DisableDiagonal();
+
         movement = new Vector3(movHor, 0, movVer);
+
+        //camDir = cam.transform.forward + cam.transform.right;
+        //movementNew = new Vector3(Mathf.Abs(camDir.x) * movement.x, 0, Mathf.Abs(camDir.z) * movement.z);
+
         animator.SetFloat("Horizontal", movHor);
         animator.SetFloat("Vertical", movVer);
+
         if (movement.magnitude == 0)
         {
             animator.SetBool("Idle", true);
@@ -47,6 +57,7 @@ public class PlayerMovement : MonoBehaviour
             _lastDirection = GetLastDirection();
             animator.SetFloat("LastDirection", _lastDirection);
         }
+
         speed = Run();
     }
 
@@ -54,14 +65,16 @@ public class PlayerMovement : MonoBehaviour
     // Update is called on a fixed interval
     void FixedUpdate()
     {
-        StickToGround();
-        rb.MovePosition(rb.position + movement * speed * Time.fixedDeltaTime);
+        if (RayCastCollision()) return;
+
+        transform.Translate(movement * speed * Time.fixedDeltaTime);
+        //transform.Translate(movementNew * speed * Time.fixedDeltaTime);
     }
 
     //Increase player speed if run button is held down
     float Run()
     {
-        if (Input.GetKey(runButton.ToLower()))
+        if (Input.GetKey(runButton.ToLower()) || Input.GetKey(KeyCode.LeftShift))
         {
             animator.SetBool("Running", true);
             return runSpeed;
@@ -117,14 +130,22 @@ public class PlayerMovement : MonoBehaviour
         return -1;
     }
 
-    //enables falling if moving and prevents sliding if still
-    void StickToGround()
+    //tries to detect collisions with ray casting
+    bool RayCastCollision()
     {
-        if (movement.sqrMagnitude != 0)
+        if (GetComponent<PlayerCasting>()._ToTarget <= 0.25)
         {
-            rb.velocity = fallSpeed;
-            return;
+            return true;
         }
-        rb.velocity = Vector3.zero;
+        else
+        {
+            return false;
+        }
+    }
+
+    //public funtion to pass movement vector to other scripts
+    public Vector3 GetMovement()
+    {
+        return movement;
     }
 }
