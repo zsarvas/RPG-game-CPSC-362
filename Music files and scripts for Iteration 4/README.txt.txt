@@ -1,0 +1,1 @@
+The file BossTrigger.cs contains an updated section that controls the transition between music
